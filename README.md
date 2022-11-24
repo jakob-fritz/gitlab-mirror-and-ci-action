@@ -1,39 +1,70 @@
 # Mirror to GitLab and trigger GitLab CI
 
-A GitHub Action that mirrors all commits to GitLab, triggers GitLab CI, and returns the results back to GitHub. 
+A GitHub Action that mirrors all commits to GitLab, triggers GitLab CI, and returns the results back to GitHub.
 
-This action uses active polling to determine whether the GitLab pipeline is finished. This means our GitHub Action will run for the same amount of time as it takes for GitLab CI to finish the pipeline. 
+A second action uses active polling to determine whether the GitLab pipeline is finished. This means that GitHub Action will only end after the GitLab CI pipeline finished.
 
-## Example workflow
+## How to set up a Gitlab-CI with a Github-Repo
 
-This is an example of a pipeline that uses this action:
+### Steps for the maintainer
 
-```workflow
-name: Mirror and run GitLab CI
+This is a dummy-project to test the integration of Gitlab-CI into Repos hosted on Github.
 
-on: [push]
+Steps to be done:
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-    - name: Mirror + trigger CI
-      uses: SvanBoxel/gitlab-mirror-and-ci-action@master
-      with:
-        args: "https://gitlab.com/<namespace>/<repository>"
-      env:
-        FORCE_PUSH: "false"
-        GITLAB_HOSTNAME: "gitlab.com"
-        GITLAB_USERNAME: "svboxel"
-        GITLAB_PASSWORD: ${{ secrets.GITLAB_PASSWORD }} // Generate here: https://gitlab.com/profile/personal_access_tokens
-        GITLAB_PROJECT_ID: "<GitLab project ID>" // https://gitlab.com/<namespace>/<repository>/edit
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} // https://docs.github.com/en/actions/reference/authentication-in-a-workflow#about-the-github_token-secret
-```
+#### Preparation
 
-Be sure to define the `GITLAB_PASSWORD` secret in `https://github.com/<namespace>/<repository>/settings/secrets`  
-Before setup a token to use as `GITLAB_PASSWORD` here https://gitlab.com/profile/personal_access_tokens  
-The token must have `read_api`, `read_repository` & `write_repository` permissions in GitLab.  
-For granular permissions create seperate users and tokens in GitLab with restricted access.  
+- Create a new empty repository in a Gitlab-Instance.
+- Allow Force-Push on remote protected branches in remote repository.
+  - This can be found in Gitlab in `Settings -> Repository -> Protected branches`
+- Create Project Access Token in GitLab,
+  so that the GitHub-CI can push to GitLab
+  - This can be found in Gitlab in `Settings -> Access Tokens -> Project Access Tokens`
+  - Give the token a suited name. This name is publicly readable.
+  - Set a role of this token (probably `maintainer`,
+                              as force-push needs to be possible)
+  - This token needs the necessary permissions:
+    - api (Read & Write)
+    - read_repository
+    - write_repository
+  - Click `Create project access token`
+  - Copy the generated token to the clipboard
+- Set the token in Github as a secret
+  - In Github `Settings -> Secrets -> Actions -> New repository secret`
+  - Set the name as `GITLAB_TOKEN`
+  - Paste the token as `secret`
+  - Click `Add Secret` to create the new secret
 
-If you're rewriting history in the primary repo (e.g by using `git rebase`), you'll need to force push. Set the `FORCE_PUSH` environment variable to `true` to enable this. This will overwrite history in the mirror as well, so be **careful with this** (just like any time you're using `git push --force`).
+#### Gitlab-CI
+
+Add a Gitlab-CI-File called `.gitlab-ci.yml`.
+This file is automatically detected by Gitlab
+and run when a new commit is done.
+This file contains jobs for the Gitlab-CI-Pipeline.
+An example for such a file can be found in `examples/.gitlab-ci.yml`.
+
+#### Github-CI
+
+- Copy the file `mirror_wait.yml` in `examples/.github/workflows`
+to your own repository (in a directory called `.github/workflows`).
+This file adds a job that triggers a CI-Pipeline in Gitlab.
+- Edit the environment-variables in the file to match your project
+  - `GITLAB_HOSTNAME` needs to be the base of the Gitlab-Instance.
+  E.g. `codebase.helmholtz.cloud` without https:// in front
+  - `GITLAB_REPO_URL` also needs to be without https://,
+  but contains the full path of the git-file,
+  e.g. `codebase.helmholtz.cloud/j.fritz/github2gitlab_dummy.git`.
+  - Set "`GITLAB_PROJECT_ID` to the repository-id
+  that can be found in the main page of the repository (named "Project ID")
+- The following environment-variables can be kept as they are:
+  - `FORCE_PUSH` is set to force-push to the Gitlab-Repo, to make sure,
+  the Gitlab-Repo stays in sync with the main GitHub-repository.
+  - `GITHUB_TOKEN` is used to authorize internal actions. The secret is set automatically by GitHub.
+  - `GITLAB_TOKEN` is used to authorize actions with the Gitlab-repo.
+  It uses the secret, that was set above.
+
+### Steps for each contributor
+
+Nothing special. Just contribute to the project as you regularly do
+(and as the project requests). Your contributions are automatically
+tested in the Gitlab-Repo (once the maintainer approved it).
