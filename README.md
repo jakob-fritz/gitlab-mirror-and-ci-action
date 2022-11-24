@@ -4,15 +4,17 @@ A GitHub Action that mirrors all commits to GitLab, triggers GitLab CI, and retu
 
 A second action uses active polling to determine whether the GitLab pipeline is finished. This means that GitHub Action will only end after the GitLab CI pipeline finished.
 
-## How to set up a Gitlab-CI with a Github-Repo
+## How to use the Gitlab-CI as a contributor
 
-### Steps for the maintainer
+Nothing special. Just contribute to the project as you regularly do
+(and as the project requests). Your contributions are automatically
+tested in the Gitlab-Repo (once the maintainer approved it).
 
-This is a dummy-project to test the integration of Gitlab-CI into Repos hosted on Github.
+## How to set up a Gitlab-CI with a Github-Repo (as a maintainer)
 
 Steps to be done:
 
-#### Preparation
+### Preparation
 
 - Create a new empty repository in a Gitlab-Instance.
 - Allow Force-Push on remote protected branches in remote repository.
@@ -35,15 +37,16 @@ Steps to be done:
   - Paste the token as `secret`
   - Click `Add Secret` to create the new secret
 
-#### Gitlab-CI
+### Gitlab-CI
 
 Add a Gitlab-CI-File called `.gitlab-ci.yml`.
 This file is automatically detected by Gitlab
 and run when a new commit is done.
 This file contains jobs for the Gitlab-CI-Pipeline.
+
 An example for such a file can be found in `examples/.gitlab-ci.yml`.
 
-#### Github-CI
+### Github-CI
 
 - Copy the file `mirror_wait.yml` in `examples/.github/workflows`
 to your own repository (in a directory called `.github/workflows`).
@@ -62,9 +65,3 @@ This file adds a job that triggers a CI-Pipeline in Gitlab.
   - `GITHUB_TOKEN` is used to authorize internal actions. The secret is set automatically by GitHub.
   - `GITLAB_TOKEN` is used to authorize actions with the Gitlab-repo.
   It uses the secret, that was set above.
-
-### Steps for each contributor
-
-Nothing special. Just contribute to the project as you regularly do
-(and as the project requests). Your contributions are automatically
-tested in the Gitlab-Repo (once the maintainer approved it).
