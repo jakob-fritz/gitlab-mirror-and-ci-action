@@ -1,3 +1,5 @@
+**This repository is archived, as the further development takes place in another repo [github2lab_action](https://github.com/jakob-fritz/github2lab_action).**
+
 # Mirror to GitLab and trigger GitLab CI
 
 A GitHub Action that mirrors all commits to GitLab, triggers GitLab CI, and returns the results back to GitHub. 
